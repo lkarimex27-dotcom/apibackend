@@ -1,0 +1,8 @@
+node_modules/
+#.env
+#dotenv environment variables files
+
+#.env.development.local
+#.env.test.local
+#.env.production.local
+#.env.local
