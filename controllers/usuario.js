@@ -43,17 +43,25 @@ const usuariosPost = async (req = request, res = response) => {
 
 // 3. ACTUALIZAR CLIENTE (PUT)
 const usuariosPut = async (req, res = response) => {
-    const { id } = req.params;
+    // El "id" que viene en req.params es el idCliente (ej: 0001192)
+    const { id } = req.params; 
     const { _id, idCliente, ...resto } = req.body;
 
     try {
-        const usuario = await Usuario.findByIdAndUpdate(id, resto, { new: true });
+        // CAMBIO CLAVE: Buscamos por el campo 'idCliente', no por el '_id' de Mongo
+        const usuario = await Usuario.findOneAndUpdate({ idCliente: id }, resto, { new: true });
+        
+        if (!usuario) {
+            return res.status(404).json({ msg: 'No se encontró un cliente con ese ID' });
+        }
+
         res.json({
             msg: 'Cliente actualizado correctamente',
             usuario
         });
     } catch (error) {
-        res.status(400).json({ msg: 'Error al actualizar' });
+        console.log(error);
+        res.status(400).json({ msg: 'Error al actualizar', error: error.message });
     }
 }
 
@@ -61,8 +69,13 @@ const usuariosPut = async (req, res = response) => {
 const usuariosDelete = async (req, res = response) => {
     const { id } = req.params;
     try {
-        // Eliminación lógica cambiando el estado
-        const usuario = await Usuario.findByIdAndUpdate(id, { estado: false }, { new: true });
+        // CAMBIO CLAVE: Buscamos por 'idCliente' para hacer la eliminación lógica
+        const usuario = await Usuario.findOneAndUpdate({ idCliente: id }, { estado: false }, { new: true });
+        
+        if (!usuario) {
+            return res.status(404).json({ msg: 'No se encontró un cliente con ese ID' });
+        }
+
         res.json({
             msg: 'Cliente desactivado',
             usuario
@@ -72,10 +85,9 @@ const usuariosDelete = async (req, res = response) => {
     }
 }
 
-// EL CAMBIO CLAVE: Debes exportar TODAS las funciones que usas en las rutas
 module.exports = {
     usuariosGet,
     usuariosPost,
-    usuariosPut,    // <-- Faltaba este
-    usuariosDelete  // <-- Faltaba este
+    usuariosPut,
+    usuariosDelete
 }
